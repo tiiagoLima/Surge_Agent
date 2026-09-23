@@ -70,6 +70,10 @@ surge/
 │   │       ├── telegram_notifier.py
 │   │       ├── composite_notifier.py
 │   │       └── sqlite_repository.py
+│   ├── assets/
+│   │   └── templates/
+│   │       ├── opportunities.html  # e-mail dark mode financeiro (Jinja2)
+│   │       └── error.html          # e-mail de erro de sistema (Jinja2)
 │   ├── config.py
 │   └── main.py
 ├── tests/
