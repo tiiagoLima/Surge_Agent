@@ -15,8 +15,7 @@ class Settings(BaseSettings):
         extra="ignore",
     )
 
-    # Investment scanner
-    watchlist: str = Field(default="", alias="SURGE_WATCHLIST")
+    # Scanner (portfolio-aware — nenhum ticker hardcodado; carteira vive no SQLite)
     drop_threshold: float = Field(default=5.0, alias="SURGE_DROP_THRESHOLD")
     cron_hour: int = Field(default=18, alias="SURGE_CRON_HOUR")
     cron_minute: int = Field(default=0, alias="SURGE_CRON_MINUTE")
@@ -45,13 +44,6 @@ class Settings(BaseSettings):
     # App
     timezone: str = Field(default="America/Sao_Paulo", alias="SURGE_TIMEZONE")
     log_level: str = Field(default="INFO", alias="SURGE_LOG_LEVEL")
-
-    @property
-    def tickers(self) -> list[str]:
-        """Parsed watchlist as list of tickers."""
-        if not self.watchlist.strip():
-            return []
-        return [t.strip().upper() for t in self.watchlist.split(",") if t.strip()]
 
     @property
     def has_notification_channel(self) -> bool:

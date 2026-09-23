@@ -11,7 +11,7 @@ Crie/edite `src/domain/models.py`:
 
 Se o novo módulo tem conceito conflitante (ex: "Ticker" diferente), avalie bounded context, mas por ora mantenha no mesmo `domain/`.
 
-## 2. Definir portas
+## 2. Definir portas (ISP estrito)
 
 Edite `src/domain/ports.py`:
 ```python
@@ -20,8 +20,12 @@ class MyPort(ABC):
     def do_something(self, ...) -> ...: ...
 ```
 Portas são interfaces abstratas. Nunca importe adapter aqui.
+Não engorde portas existentes — crie uma porta nova e segregada
+(ex: `PortfolioPort` separada de `StoragePort`, mesmo que o mesmo
+adapter SQLite implemente ambas). Regras de negócio dependem só dos
+métodos estritos da sua porta.
 
-## 3. Criar o UseCase
+## 3. Criar o UseCase (agnóstico à entrada — ChatOps-ready)
 
 Crie `src/application/<meu_modulo>/use_case.py`:
 ```python
@@ -36,7 +40,13 @@ class MyUseCase:
         ...
 ```
 - Injeção via `__init__` — nunca instanciar adapter dentro do UseCase
+- Assinaturas agnósticas: o use case não sabe se é chamado pela CLI
+  (`src/main.py`) ou por um futuro `TelegramInboundAdapter`
+  (ex: `ManagePortfolioUseCase.add/remove/list/get` sem `argparse` dentro).
 - Type hints obrigatórios, docstring Google style
+- Padrões de referência: `ScanPortfolioUseCase` (monitora o que é meu),
+  `MarketRadarUseCase` (descobre o mercado via `list_market_quotes()` e
+  exclui o que já tenho).
 
 ## 4. Implementar adapters
 

@@ -18,7 +18,6 @@ from src.adapters.outbound.email_notifier import EmailNotifier
 from src.adapters.outbound.sqlite_repository import SqliteRepository
 from src.adapters.outbound.telegram_notifier import TelegramNotifier
 from src.adapters.outbound.yfinance_adapter import YFinanceAdapter
-from src.application.investment_scanner.use_case import InvestmentScannerUseCase
 from src.application.portfolio.manage_portfolio_use_case import ManagePortfolioUseCase
 from src.application.portfolio.scan_portfolio_use_case import ScanPortfolioUseCase
 from src.application.radar.market_radar_use_case import MarketRadarUseCase
@@ -61,28 +60,16 @@ def _build_ports():
         notifiers.append(EmailNotifier("", 0, "", "", "", "", enabled=False))
 
     notification_port = CompositeNotifier(notifiers)
-    return settings, repo, quote_port, brapi, notification_port, repo
-
-
-def build_legacy_use_case() -> tuple[InvestmentScannerUseCase, list[str]]:
-    """Legacy builder for SURGE_WATCHLIST env-based scan."""
-    settings, _, quote_port, _, notification_port, storage_port = _build_ports()
-    use_case = InvestmentScannerUseCase(
-        quote_port=quote_port,
-        notification_port=notification_port,
-        storage_port=storage_port,
-        drop_threshold_pct=settings.drop_threshold,
-    )
-    return use_case, settings.tickers
+    return settings, repo, quote_port, notification_port, repo
 
 
 def build_manage_portfolio_use_case() -> ManagePortfolioUseCase:
-    _, portfolio_port, quote_port, _, _, _ = _build_ports()
+    _, portfolio_port, quote_port, _, _ = _build_ports()
     return ManagePortfolioUseCase(portfolio_port=portfolio_port, quote_port=quote_port)
 
 
 def build_scan_portfolio_use_case() -> ScanPortfolioUseCase:
-    settings, portfolio_port, quote_port, _, notification_port, storage_port = _build_ports()
+    settings, portfolio_port, quote_port, notification_port, storage_port = _build_ports()
     return ScanPortfolioUseCase(
         portfolio_port=portfolio_port,
         quote_port=quote_port,
@@ -93,30 +80,14 @@ def build_scan_portfolio_use_case() -> ScanPortfolioUseCase:
 
 
 def build_market_radar_use_case() -> MarketRadarUseCase:
-    settings, portfolio_port, _, market_port, notification_port, storage_port = _build_ports()
+    settings, portfolio_port, quote_port, notification_port, storage_port = _build_ports()
     return MarketRadarUseCase(
         portfolio_port=portfolio_port,
-        market_quote_port=market_port,
+        market_quote_port=quote_port,
         notification_port=notification_port,
         storage_port=storage_port,
         drop_threshold_pct=settings.drop_threshold,
     )
-
-
-def run_once_legacy() -> None:
-    """Run single scan via legacy env watchlist."""
-    use_case, tickers = build_legacy_use_case()
-    if not tickers:
-        logger.warning(
-            "SURGE_WATCHLIST vazia — nada para escanear. "
-            "Use 'surge portfolio add' ou 'surge scan --portfolio/--radar'"
-        )
-        return
-    logger.info("Surge legacy scan: %d tickers, threshold=%.1f%%", len(tickers), use_case.threshold)
-    opps = use_case.execute(tickers)
-    logger.info("Surge scan done: %d oportunidades", len(opps))
-    for opp in opps:
-        print(f"  - {opp.summary()}")
 
 
 def run_scheduler() -> None:
@@ -151,12 +122,6 @@ def main() -> None:
     parser.add_argument(
         "--log-level", default=None, help="Override log level (DEBUG, INFO, WARNING)"
     )
-    # Legacy flag at top-level for backward compat
-    parser.add_argument(
-        "--once",
-        action="store_true",
-        help="Legacy: single scan via SURGE_WATCHLIST (use scan --portfolio)",
-    )
 
     subparsers = parser.add_subparsers(dest="command")
 
@@ -176,14 +141,12 @@ def main() -> None:
     p_get = p_sub.add_parser("get", help="Show holding")
     p_get.add_argument("ticker", help="Ticker")
 
-    # scan subcommand
+    # scan subcommand (single run; scheduler vive no modo sem subcomando)
     s_parser = subparsers.add_parser("scan", help="Run scans")
     s_parser.add_argument("--portfolio", action="store_true", help="Scan portfolio holdings")
     s_parser.add_argument(
         "--radar", action="store_true", help="Scan market radar (Brapi list, excludes holdings)"
     )
-    # --once legacy inside scan as well
-    s_parser.add_argument("--once", action="store_true", help="Single run (default)")
 
     args = parser.parse_args()
 
@@ -195,16 +158,13 @@ def main() -> None:
         stream=sys.stdout,
     )
 
-    # No subcommand -> legacy behavior or scheduler
+    # No subcommand -> scheduler (portfolio + radar diários)
     if args.command is None:
         print("Surge -- Personal Automation Hub")
         holdings_preview = build_manage_portfolio_use_case().list()
-        watch = settings.tickers or [h.ticker for h in holdings_preview] or "(vazia)"
+        watch = [h.ticker for h in holdings_preview] or "(vazia)"
         print(f"   holdings={watch} threshold={settings.drop_threshold}%")
-        if args.once:
-            run_once_legacy()
-        else:
-            run_scheduler()
+        run_scheduler()
         return
 
     if args.command == "portfolio":

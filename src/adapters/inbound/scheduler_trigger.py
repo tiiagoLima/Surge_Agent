@@ -29,9 +29,9 @@ class SchedulerTrigger:
         trigger = CronTrigger(
             day_of_week=day_of_week, hour=hour, minute=minute, timezone=self._timezone
         )
-        self._scheduler.add_job(func, trigger, id="investment_scanner", replace_existing=True)
+        self._scheduler.add_job(func, trigger, id="surge_daily_scan", replace_existing=True)
         logger.info(
-            "Scheduled job 'investment_scanner' at %02d:%02d %s (%s)",
+            "Scheduled job 'surge_daily_scan' at %02d:%02d %s (%s)",
             hour,
             minute,
             day_of_week,

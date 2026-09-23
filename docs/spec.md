@@ -51,19 +51,24 @@ surge/
 │       └── testing-guidelines.md
 ├── src/
 │   ├── domain/
-│   │   ├── models.py
-│   │   └── ports.py
+│   │   ├── models.py        # Quote, Opportunity, Holding
+│   │   └── ports.py         # QuotePort, StoragePort, NotificationPort, PortfolioPort (ISP)
 │   ├── application/
-│   │   └── investment_scanner/
-│   │       └── use_case.py
+│   │   ├── portfolio/
+│   │   │   ├── manage_portfolio_use_case.py  # add/remove/list/get (agnóstico)
+│   │   │   └── scan_portfolio_use_case.py    # monitora holdings
+│   │   └── radar/
+│   │       └── market_radar_use_case.py      # radar Brapi, exclui carteira
 │   ├── adapters/
 │   │   ├── inbound/
 │   │   │   └── scheduler_trigger.py
 │   │   └── outbound/
 │   │       ├── yfinance_adapter.py
 │   │       ├── brapi_adapter.py
+│   │       ├── composite_quote_adapter.py
 │   │       ├── email_notifier.py
 │   │       ├── telegram_notifier.py
+│   │       ├── composite_notifier.py
 │   │       └── sqlite_repository.py
 │   ├── config.py
 │   └── main.py
@@ -95,11 +100,18 @@ Pacote importável: `src` (distribuição `surge`). Estrutura flatten: `src/doma
 - `tests/unit/`: domain + application com fakes
 - `tests/integration/`: adapters reais
 
-## 6. Investment Scanner — Parâmetros MVP
+## 6. Scanner portfolio-aware (sem hardcode)
 
-- Threshold: queda de 5% vs fechamento anterior (configurável via `SURGE_DROP_THRESHOLD`)
-- Watchlist: vazia por padrão, configurável via `SURGE_WATCHLIST` (CSV) ou `watchlist.yaml` futuro
-- Fonte primária: yfinance; fallback: brapi.dev
+- Nenhum ticker em env: `SURGE_WATCHLIST` foi removido. Carteira vive no SQLite
+  via `PortfolioPort` (`holdings`: ticker, quantity, avg_price, currency, added_at).
+- `ManagePortfolioUseCase.add/remove/list/get` — agnóstico (CLI é só inbound adapter;
+  futuro `TelegramInboundAdapter` reusa o mesmo use case). `add` valida o ticker
+  via `QuotePort.get_quote()` (Brapi free) antes de persistir.
+- `ScanPortfolioUseCase` — monitora holdings locais, alerta se queda >= threshold.
+- `MarketRadarUseCase` — consome `QuotePort.list_market_quotes()` (Brapi
+  `GET /api/quote/list`, free) e retorna quedas >= threshold excluindo a carteira.
+- Threshold: queda de 5% vs fechamento anterior (configurável via `SURGE_DROP_THRESHOLD`).
+- Fonte primária: yfinance; fallback/validação/radar: brapi.dev.
 
 ## 7. Docker
 
@@ -111,11 +123,11 @@ Lint + testes unitários obrigatórios + build Docker.
 
 ## 9. Critérios de Aceite — Fase 1 (Bootstrap)
 
-- [ ] Estrutura com `src/`
-- [ ] `domain/ports.py` e `domain/models.py`
-- [ ] `investment_scanner/use_case.py` com DI
-- [ ] Adapters outbound funcionais
-- [ ] `main.py` composition root
-- [ ] `pyproject.toml`, `Dockerfile`, `docker-compose.yml`, `ci.yml`
-- [ ] `agents/skill/new-automation.md` antes dos adapters
-- [ ] README com setup venv
+- [x] Estrutura com `src/`
+- [x] `domain/ports.py` e `domain/models.py`
+- [x] Use cases de portfólio e radar (`ScanPortfolioUseCase`, `MarketRadarUseCase`, `ManagePortfolioUseCase`) com DI
+- [x] Adapters outbound funcionais (YFinance, Brapi, SQLite, Email, Telegram, Composite)
+- [x] `main.py` composition root
+- [x] `pyproject.toml`, `Dockerfile`, `docker-compose.yml`, `ci.yml`
+- [x] `agents/skill/new-automation.md` antes dos adapters
+- [x] README com setup venv e arte conceitual

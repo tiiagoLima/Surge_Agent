@@ -13,7 +13,7 @@
 
 ## Como escrever
 ```python
-# tests/unit/test_investment_scanner.py
+# tests/unit/test_scan_portfolio.py
 from src.domain.models import Quote
 from src.domain.ports import QuotePort, NotificationPort, StoragePort
 

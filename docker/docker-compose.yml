@@ -10,8 +10,9 @@ services:
     volumes:
       - surge_data:/app/data
     restart: unless-stopped
-    # Default: scheduler mode. Override for one-off scan:
-    # command: ["surge", "--once"]
+    # Default: scheduler mode (portfolio + radar diários). Override for one-off scan:
+    # command: ["surge", "scan", "--portfolio"]
+    # command: ["surge", "scan", "--radar"]
 
 volumes:
   surge_data:
