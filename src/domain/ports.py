@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 
-from src.domain.models import Opportunity, Quote
+from src.domain.models import Holding, Opportunity, Quote
 
 
 class QuotePort(ABC):
@@ -54,3 +54,23 @@ class StoragePort(ABC):
     def get_recent_opportunities(self, limit: int = 20) -> list[Opportunity]:
         """Optional: return recent opportunities."""
         return []
+
+
+class PortfolioPort(ABC):
+    """Manages user's holdings. Strict ISP — no quote/opportunity methods."""
+
+    @abstractmethod
+    def save_holding(self, holding: Holding) -> None:
+        """Upsert a holding by ticker."""
+
+    @abstractmethod
+    def remove_holding(self, ticker: str) -> bool:
+        """Remove holding by ticker. Returns True if removed."""
+
+    @abstractmethod
+    def get_holding(self, ticker: str) -> Holding | None:
+        """Return holding for ticker, or None."""
+
+    @abstractmethod
+    def list_holdings(self) -> list[Holding]:
+        """Return all holdings ordered by ticker."""

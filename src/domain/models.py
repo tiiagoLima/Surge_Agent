@@ -46,6 +46,29 @@ class Quote:
 
 
 @dataclass(frozen=True)
+class Holding:
+    """Position in the user's portfolio.
+
+    Immutable value object — represents a fact at creation time.
+    Quantity and avg_price are informational for future P&L alerts,
+    not used by the radar itself.
+
+    Attributes:
+        ticker: Canonical symbol, e.g. "PETR4.SA".
+        quantity: Number of shares/units held.
+        avg_price: Average purchase price per unit, if known.
+        currency: ISO 4217 code.
+        added_at: When holding was added (UTC).
+    """
+
+    ticker: str
+    quantity: float
+    avg_price: float | None = None
+    currency: str = "BRL"
+    added_at: datetime | None = None
+
+
+@dataclass(frozen=True)
 class Opportunity:
     """Detected buying opportunity.
 
