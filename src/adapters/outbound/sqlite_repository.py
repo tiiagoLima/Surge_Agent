@@ -4,24 +4,45 @@ from __future__ import annotations
 
 import logging
 import sqlite3
+import uuid
 from datetime import datetime
 from pathlib import Path
 
-from src.domain.models import Opportunity, Quote
-from src.domain.ports import StoragePort
+from src.domain.models import Holding, Opportunity, Quote
+from src.domain.ports import PortfolioPort, StoragePort
 
 logger = logging.getLogger(__name__)
 
 
-class SqliteRepository(StoragePort):
-    """Persists quotes and opportunities in SQLite."""
+class SqliteRepository(PortfolioPort, StoragePort):
+    """Persists quotes, opportunities and holdings in SQLite.
+
+    Implements StoragePort and PortfolioPort separately (ISP) —
+    same SQLite file, isolated interfaces.
+    """
 
     def __init__(self, db_path: str | Path = "./surge.db") -> None:
-        self._db_path = Path(db_path)
-        self._db_path.parent.mkdir(parents=True, exist_ok=True)
+        # :memory: needs shared-cache URI per instance to keep tables across connections
+        if isinstance(db_path, str) and db_path == ":memory:":
+            self._db_path: str | Path = f"file:mem_{uuid.uuid4().hex}?mode=memory&cache=shared"
+            self._is_memory = True
+            # keep one persistent connection to keep DB alive
+            self._memory_conn = sqlite3.connect(self._db_path, uri=True, timeout=10)
+            self._memory_conn.row_factory = sqlite3.Row
+        else:
+            self._db_path = Path(db_path) if isinstance(db_path, str) else db_path
+            self._is_memory = False
+            self._memory_conn = None
+            if str(self._db_path) != ":memory:":
+                self._db_path.parent.mkdir(parents=True, exist_ok=True)
         self._init_db()
 
     def _connect(self) -> sqlite3.Connection:
+        if self._is_memory:
+            # return a new connection to same shared memory URI
+            conn = sqlite3.connect(str(self._db_path), uri=True, timeout=10)
+            conn.row_factory = sqlite3.Row
+            return conn
         conn = sqlite3.connect(str(self._db_path), timeout=10)
         conn.row_factory = sqlite3.Row
         return conn
@@ -53,6 +74,14 @@ class SqliteRepository(StoragePort):
                     detected_at TEXT NOT NULL
                 );
                 CREATE INDEX IF NOT EXISTS idx_opps_detected ON opportunities(detected_at DESC);
+
+                CREATE TABLE IF NOT EXISTS holdings (
+                    ticker TEXT PRIMARY KEY,
+                    quantity REAL NOT NULL,
+                    avg_price REAL,
+                    currency TEXT NOT NULL,
+                    added_at TEXT NOT NULL
+                );
                 """)
 
     def save_quote(self, quote: Quote) -> None:
@@ -135,3 +164,58 @@ class SqliteRepository(StoragePort):
                     )
                 )
             return result
+
+    # --- PortfolioPort ---
+
+    def save_holding(self, holding: Holding) -> None:
+        """Upsert holding by ticker (ticker normalized to upper)."""
+        added_at = (holding.added_at or datetime.now()).isoformat()
+        with self._connect() as conn:
+            conn.execute(
+                "INSERT OR REPLACE INTO holdings "
+                "(ticker, quantity, avg_price, currency, added_at) "
+                "VALUES (?, ?, ?, ?, ?)",
+                (
+                    holding.ticker.upper(),
+                    float(holding.quantity),
+                    float(holding.avg_price) if holding.avg_price is not None else None,
+                    holding.currency.upper(),
+                    added_at,
+                ),
+            )
+            conn.commit()
+
+    def remove_holding(self, ticker: str) -> bool:
+        with self._connect() as conn:
+            cur = conn.execute("DELETE FROM holdings WHERE ticker = ?", (ticker.upper(),))
+            conn.commit()
+            return cur.rowcount > 0
+
+    def get_holding(self, ticker: str) -> Holding | None:
+        with self._connect() as conn:
+            row = conn.execute(
+                "SELECT * FROM holdings WHERE ticker = ?", (ticker.upper(),)
+            ).fetchone()
+            if row is None:
+                return None
+            return Holding(
+                ticker=row["ticker"],
+                quantity=row["quantity"],
+                avg_price=row["avg_price"],
+                currency=row["currency"],
+                added_at=datetime.fromisoformat(row["added_at"]),
+            )
+
+    def list_holdings(self) -> list[Holding]:
+        with self._connect() as conn:
+            rows = conn.execute("SELECT * FROM holdings ORDER BY ticker").fetchall()
+            return [
+                Holding(
+                    ticker=row["ticker"],
+                    quantity=row["quantity"],
+                    avg_price=row["avg_price"],
+                    currency=row["currency"],
+                    added_at=datetime.fromisoformat(row["added_at"]),
+                )
+                for row in rows
+            ]
