@@ -148,6 +148,19 @@ def main() -> None:
         "--radar", action="store_true", help="Scan market radar (Brapi list, excludes holdings)"
     )
 
+    # test-email subcommand
+    e_parser = subparsers.add_parser("test-email", help="Test or preview email HTML template")
+    e_parser.add_argument(
+        "--preview",
+        action="store_true",
+        help="Generate preview HTML file and open in default browser",
+    )
+    e_parser.add_argument(
+        "--send",
+        action="store_true",
+        help="Send a test email using configured SMTP credentials",
+    )
+
     args = parser.parse_args()
 
     settings = get_settings()
@@ -228,6 +241,122 @@ def main() -> None:
             for o in opps:
                 print(f"  - {o.summary()}")
         return
+
+    if args.command == "test-email":
+        _cmd_test_email(args)
+        return
+
+
+def _make_fake_opportunities() -> list:
+    """Generate synthetic opportunities for preview/test purposes."""
+    from datetime import UTC, datetime
+
+    from src.domain.models import Opportunity, Quote
+
+    now = datetime.now(UTC)
+    quotes = [
+        Quote(
+            ticker="PETR4.SA",
+            price=28.40,
+            currency="BRL",
+            timestamp=now,
+            source="yfinance",
+            previous_close=31.20,
+        ),
+        Quote(
+            ticker="VALE3.SA",
+            price=54.10,
+            currency="BRL",
+            timestamp=now,
+            source="brapi",
+            previous_close=58.90,
+        ),
+    ]
+    return [
+        Opportunity(
+            quote=q,
+            drop_pct=((q.price - (q.previous_close or q.price)) / (q.previous_close or q.price))
+            * 100,
+            threshold_pct=5.0,
+            detected_at=now,
+        )
+        for q in quotes
+    ]
+
+
+def _cmd_test_email(args: argparse.Namespace) -> None:
+    """Handle the test-email command (--preview or --send)."""
+    import tempfile
+    import webbrowser
+
+    settings = get_settings()
+
+    from src.adapters.outbound.composite_notifier import CompositeNotifier
+    from src.adapters.outbound.email_notifier import EmailNotifier
+
+    _, _, _, notification_port, _ = _build_ports()
+
+    email_notifier: EmailNotifier | None = None
+    if isinstance(notification_port, CompositeNotifier):
+        for n in notification_port._notifiers:
+            if isinstance(n, EmailNotifier) and n._enabled:
+                email_notifier = n
+                break
+
+    if email_notifier is None:
+        email_notifier = EmailNotifier(
+            smtp_host=settings.smtp_host,
+            smtp_port=settings.smtp_port,
+            smtp_user=settings.smtp_user,
+            smtp_password=settings.smtp_password,
+            email_from=settings.email_from,
+            email_to=settings.email_to,
+            enabled=False,
+        )
+
+    opps = _make_fake_opportunities()
+
+    if not args.preview and not args.send:
+        print("Use --preview para visualizar no navegador ou --send para enviar o e-mail de teste.")
+        return
+
+    if args.preview:
+        html = email_notifier.render_opportunities_html(opps)
+        if not html:
+            print("Erro: template HTML não encontrado em src/assets/templates/")
+            return
+        with tempfile.NamedTemporaryFile(
+            suffix="_surge_email_preview.html",
+            mode="w",
+            encoding="utf-8",
+            delete=False,
+        ) as f:
+            f.write(html)
+            path = f.name
+        print(f"Preview gerado em: {path}")
+        webbrowser.open(f"file://{path}")
+
+    if args.send:
+        if not settings.email_enabled:
+            print(
+                "Aviso: SURGE_EMAIL_ENABLED=false — ativando modo de envio forçado para teste.",
+                flush=True,
+            )
+        test_notifier = EmailNotifier(
+            smtp_host=settings.smtp_host,
+            smtp_port=settings.smtp_port,
+            smtp_user=settings.smtp_user,
+            smtp_password=settings.smtp_password,
+            email_from=settings.email_from,
+            email_to=settings.email_to,
+            enabled=True,
+        )
+        print(f"Enviando e-mail de teste para {settings.email_to}...")
+        try:
+            test_notifier.notify(opps)
+            print("E-mail de teste enviado com sucesso.")
+        except Exception as e:
+            print(f"Falha ao enviar: {e}")
 
 
 if __name__ == "__main__":
