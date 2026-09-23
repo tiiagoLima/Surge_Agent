@@ -1,0 +1,17 @@
+services:
+  surge:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    image: surge:local
+    container_name: surge
+    env_file:
+      - ../.env
+    volumes:
+      - surge_data:/app/data
+    restart: unless-stopped
+    # Default: scheduler mode. Override for one-off scan:
+    # command: ["surge", "--once"]
+
+volumes:
+  surge_data:
