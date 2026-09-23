@@ -6,10 +6,6 @@
 
 ## 1. Objetivo
 
-Construir uma plataforma pessoal de automações em Python, inspirada num sistema corporativo
-("João Roproau") que recebe gatilhos (entre eles, e-mail) e executa múltiplos casos de uso independentes
-(emissão de nota fiscal no sistema Sankhya, distribuição de benefícios, monitoramento de logs) sobre uma base comum.
-
 O objetivo não é resolver um problema único, mas ter uma **base extensível** onde novas
 automações pessoais possam ser adicionadas ao longo do tempo sem reescrever o núcleo.
 
