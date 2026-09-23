@@ -1,6 +1,6 @@
 # Surge — Personal Automation Hub
 
-> Plataforma pessoal de automações em Python. Inspirada no "João Roproau" corporativo.
+> Plataforma pessoal de automações em Python.
 > MVP: `investment_scanner` — monitora B3/global, detecta quedas >= 5% e notifica por e-mail/Telegram.
 > Arquitetura: Hexagonal (Ports & Adapters) + DDD tático.
 
