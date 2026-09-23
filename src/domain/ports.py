@@ -23,6 +23,10 @@ class QuotePort(ABC):
                 result.append(q)
         return result
 
+    def list_market_quotes(self) -> list[Quote]:
+        """Return market-wide quotes (e.g. Brapi /api/quote/list). Default empty."""
+        return []
+
 
 class NotificationPort(ABC):
     """Sends notifications about opportunities."""
