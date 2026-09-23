@@ -10,5 +10,5 @@ Esta pasta ensina ferramentas de IA (OpenCode, Claude Code) a trabalhar neste re
 
 ## Uso
 
-Antes de gerar código, o agente deve ler `docs/architecture/spec.md` e os três arquivos acima.
+Antes de gerar código, o agente deve ler `docs/spec.md` e os três arquivos acima.
 Qualquer nova automação deve seguir Hexagonal + DDD tático e depender apenas de ports.

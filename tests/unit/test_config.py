@@ -1,6 +1,6 @@
 """Unit tests for config parsing."""
 
-from surge.config import Settings
+from src.config import Settings
 
 
 def test_tickers_parsing():

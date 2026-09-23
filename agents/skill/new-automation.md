@@ -1,10 +1,10 @@
 # Como Criar uma Nova Automação — Surge
 
-> Siga este passo a passo para adicionar um caso de uso sem quebrar Hexagonal/DDD. Leia `docs/architecture/spec.md` antes.
+> Siga este passo a passo para adicionar um caso de uso sem quebrar Hexagonal/DDD. Leia `docs/spec.md` antes.
 
 ## 1. Modelar o domínio
 
-Crie/edite `src/surge/domain/models.py`:
+Crie/edite `src/domain/models.py`:
 - Entidades como `@dataclass(frozen=True)`
 - Value objects imutáveis
 - Métodos ricos (ex: `is_significant_drop()` em `Quote`) — não apenas dados
@@ -13,7 +13,7 @@ Se o novo módulo tem conceito conflitante (ex: "Ticker" diferente), avalie boun
 
 ## 2. Definir portas
 
-Edite `src/surge/domain/ports.py`:
+Edite `src/domain/ports.py`:
 ```python
 class MyPort(ABC):
     @abstractmethod
@@ -23,9 +23,9 @@ Portas são interfaces abstratas. Nunca importe adapter aqui.
 
 ## 3. Criar o UseCase
 
-Crie `src/surge/application/<meu_modulo>/use_case.py`:
+Crie `src/application/<meu_modulo>/use_case.py`:
 ```python
-from surge.domain.ports import MyPort
+from src.domain.ports import MyPort
 
 class MyUseCase:
     def __init__(self, port: MyPort) -> None:
@@ -40,9 +40,9 @@ class MyUseCase:
 
 ## 4. Implementar adapters
 
-Crie em `src/surge/adapters/outbound/` (ou `inbound/` para gatilhos):
+Crie em `src/adapters/outbound/` (ou `inbound/` para gatilhos):
 ```python
-from surge.domain.ports import MyPort
+from src.domain.ports import MyPort
 
 class MyAdapter(MyPort):
     def do_something(self, ...) -> ...:
@@ -53,7 +53,7 @@ class MyAdapter(MyPort):
 
 ## 5. Registrar no composition root
 
-Edite `src/surge/main.py`:
+Edite `src/main.py`:
 - Instancie adapters concretos
 - Injete nos UseCases
 - Adicione trigger (scheduler, webhook, email) em `adapters/inbound/`
@@ -65,7 +65,7 @@ Edite `src/surge/main.py`:
 
 ## 7. Config
 
-Se precisar de env vars, adicione em `src/surge/config.py` (`Settings`) e documente em `.env.example`.
+Se precisar de env vars, adicione em `src/config.py` (`Settings`) e documente em `.env.example`.
 
 ## Checklist
 

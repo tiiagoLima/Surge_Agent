@@ -19,10 +19,10 @@ Copy-Item .env.example .env
 # edite .env: SURGE_WATCHLIST=PETR4.SA,VALE3.SA,AAPL
 
 # 4. Rodar scan único
-python -m surge.main --once
+python -m src.main --once
 
 # 5. Rodar com scheduler (todo dia útil 18h)
-python -m surge.main
+python -m src.main
 # ou via entrypoint:
 surge --once
 surge
@@ -50,16 +50,16 @@ docker compose -f docker/docker-compose.yml run --rm surge surge --once
 ## Arquitetura
 
 ```
-src/surge/
+src/
   domain/        → models.py, ports.py (sem deps externas)
   application/   → investment_scanner/use_case.py (só ports)
   adapters/      → yfinance, brapi, email, telegram, sqlite, scheduler
   config.py      → pydantic-settings
   main.py        → composition root
-agents/skills/   → instruções para IAs gerarem nova automação
+agents/skill/   → instruções para IAs gerarem nova automação
 ```
 
-Nova automação? Leia `agents/skills/new-automation.md`.
+Nova automação? Leia `agents/skill/new-automation.md`.
 
 ## Testes
 

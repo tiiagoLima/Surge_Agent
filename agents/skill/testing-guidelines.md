@@ -14,8 +14,8 @@
 ## Como escrever
 ```python
 # tests/unit/test_investment_scanner.py
-from surge.domain.models import Quote
-from surge.domain.ports import QuotePort, NotificationPort, StoragePort
+from src.domain.models import Quote
+from src.domain.ports import QuotePort, NotificationPort, StoragePort
 
 class FakeQuotePort(QuotePort):
     def get_quote(self, ticker): ...
@@ -29,4 +29,4 @@ class FakeNotifier(NotificationPort):
 ## Comandos
 - `pytest tests/unit -q` — obrigatório no CI
 - `pytest tests/integration -q` — roda se secrets disponíveis
-- `pytest --cov=surge tests/unit`
+- `pytest --cov=src tests/unit`

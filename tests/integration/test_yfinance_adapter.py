@@ -2,7 +2,7 @@
 
 import pytest
 
-from surge.adapters.outbound.yfinance_adapter import YFinanceAdapter
+from src.adapters.outbound.yfinance_adapter import YFinanceAdapter
 
 pytestmark = pytest.mark.integration
 

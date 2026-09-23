@@ -26,7 +26,7 @@ Entidades de domínio com `@dataclass(frozen=True)` por padrão.
 - Config em `pyproject.toml`. Rodar antes de commit.
 
 ## Imports
-`ruff` organiza. Primeiro party: `surge`.
+`ruff` organiza. Primeiro party: `src`.
 
 ## Erros
 Adapters não devem vazar exceções de libs externas para o domínio. Traduzir para `None` ou logar e continuar.

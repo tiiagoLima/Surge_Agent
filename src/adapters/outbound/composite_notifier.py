@@ -4,8 +4,8 @@ from __future__ import annotations
 
 import logging
 
-from surge.domain.models import Opportunity
-from surge.domain.ports import NotificationPort
+from src.domain.models import Opportunity
+from src.domain.ports import NotificationPort
 
 logger = logging.getLogger(__name__)
 

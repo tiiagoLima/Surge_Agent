@@ -7,8 +7,8 @@ import sqlite3
 from datetime import datetime
 from pathlib import Path
 
-from surge.domain.models import Opportunity, Quote
-from surge.domain.ports import StoragePort
+from src.domain.models import Opportunity, Quote
+from src.domain.ports import StoragePort
 
 logger = logging.getLogger(__name__)
 

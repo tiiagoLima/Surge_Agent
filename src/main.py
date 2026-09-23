@@ -9,16 +9,16 @@ import argparse
 import logging
 import sys
 
-from surge.adapters.inbound.scheduler_trigger import SchedulerTrigger
-from surge.adapters.outbound.brapi_adapter import BrapiAdapter
-from surge.adapters.outbound.composite_notifier import CompositeNotifier
-from surge.adapters.outbound.composite_quote_adapter import CompositeQuoteAdapter
-from surge.adapters.outbound.email_notifier import EmailNotifier
-from surge.adapters.outbound.sqlite_repository import SqliteRepository
-from surge.adapters.outbound.telegram_notifier import TelegramNotifier
-from surge.adapters.outbound.yfinance_adapter import YFinanceAdapter
-from surge.application.investment_scanner.use_case import InvestmentScannerUseCase
-from surge.config import get_settings
+from src.adapters.inbound.scheduler_trigger import SchedulerTrigger
+from src.adapters.outbound.brapi_adapter import BrapiAdapter
+from src.adapters.outbound.composite_notifier import CompositeNotifier
+from src.adapters.outbound.composite_quote_adapter import CompositeQuoteAdapter
+from src.adapters.outbound.email_notifier import EmailNotifier
+from src.adapters.outbound.sqlite_repository import SqliteRepository
+from src.adapters.outbound.telegram_notifier import TelegramNotifier
+from src.adapters.outbound.yfinance_adapter import YFinanceAdapter
+from src.application.investment_scanner.use_case import InvestmentScannerUseCase
+from src.config import get_settings
 
 logger = logging.getLogger(__name__)
 

@@ -5,8 +5,8 @@ from __future__ import annotations
 import logging
 from datetime import UTC, datetime
 
-from surge.domain.models import Opportunity
-from surge.domain.ports import NotificationPort, QuotePort, StoragePort
+from src.domain.models import Opportunity
+from src.domain.ports import NotificationPort, QuotePort, StoragePort
 
 logger = logging.getLogger(__name__)
 

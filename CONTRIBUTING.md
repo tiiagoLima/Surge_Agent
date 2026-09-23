@@ -1,7 +1,7 @@
 # Contributing — Surge
 
 ## Workflow
-1. Leia `docs/architecture/spec.md` e `agents/skills/*`.
+1. Leia `docs/spec.md` e `agents/skill/*`.
 2. Crie branch a partir de `main`.
 3. Siga Hexagonal: domain não depende de adapters.
 4. Type hints + docstrings Google style.

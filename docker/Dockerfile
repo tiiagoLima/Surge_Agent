@@ -23,7 +23,7 @@ COPY --from=builder /app/src ./src
 COPY pyproject.toml README.md ./
 COPY docker/entrypoint.sh ./docker/entrypoint.sh
 
-ENV PYTHONPATH=/app/src
+ENV PYTHONPATH=/app
 ENV SURGE_DB_PATH=/app/data/surge.db
 
 USER surge

@@ -2,7 +2,7 @@
 
 from datetime import UTC, datetime
 
-from surge.domain.models import Opportunity, Quote
+from src.domain.models import Opportunity, Quote
 
 
 def _quote(price: float = 95.0, prev: float = 100.0) -> Quote:

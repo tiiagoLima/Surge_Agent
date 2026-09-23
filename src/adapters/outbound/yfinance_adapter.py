@@ -8,8 +8,8 @@ from datetime import UTC, datetime
 
 import yfinance as yf
 
-from surge.domain.models import Quote
-from surge.domain.ports import QuotePort
+from src.domain.models import Quote
+from src.domain.ports import QuotePort
 
 logger = logging.getLogger(__name__)
 

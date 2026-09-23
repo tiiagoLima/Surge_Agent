@@ -2,9 +2,9 @@
 
 from datetime import UTC, datetime
 
-from surge.application.investment_scanner.use_case import InvestmentScannerUseCase
-from surge.domain.models import Opportunity, Quote
-from surge.domain.ports import NotificationPort, QuotePort, StoragePort
+from src.application.investment_scanner.use_case import InvestmentScannerUseCase
+from src.domain.models import Opportunity, Quote
+from src.domain.ports import NotificationPort, QuotePort, StoragePort
 
 
 class FakeQuotePort(QuotePort):

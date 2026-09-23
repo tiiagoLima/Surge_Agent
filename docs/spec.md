@@ -35,40 +35,38 @@ Imagem Docker é artefato de deploy. `docker-compose.yml` espelha produção. Ag
 
 ### ADR-0005 — CI cobre lint, testes e build de imagem
 
-### ADR-0006 — Pasta `agents/skills` como instruções para ferramentas de IA
+### ADR-0006 — Pasta `agents/skill` como instruções para ferramentas de IA
 
-## 3. Estrutura de Pastas (atualizada: pacote `surge`)
+## 3. Estrutura de Pastas (flatten estético — núcleo em `src/`)
 
 ```
-surge-agent/
+surge/
 ├── docs/
-│   └── architecture/
-│       └── spec.md
+│   └── spec.md
 ├── agents/
-│   └── skills/
+│   └── skill/
 │       ├── README.md
 │       ├── code-conventions.md
 │       ├── new-automation.md
 │       └── testing-guidelines.md
 ├── src/
-│   └── surge/
-│       ├── domain/
-│       │   ├── models.py
-│       │   └── ports.py
-│       ├── application/
-│       │   └── investment_scanner/
-│       │       └── use_case.py
-│       ├── adapters/
-│       │   ├── inbound/
-│       │   │   └── scheduler_trigger.py
-│       │   └── outbound/
-│       │       ├── yfinance_adapter.py
-│       │       ├── brapi_adapter.py
-│       │       ├── email_notifier.py
-│       │       ├── telegram_notifier.py
-│       │       └── sqlite_repository.py
-│       ├── config.py
-│       └── main.py
+│   ├── domain/
+│   │   ├── models.py
+│   │   └── ports.py
+│   ├── application/
+│   │   └── investment_scanner/
+│   │       └── use_case.py
+│   ├── adapters/
+│   │   ├── inbound/
+│   │   │   └── scheduler_trigger.py
+│   │   └── outbound/
+│   │       ├── yfinance_adapter.py
+│   │       ├── brapi_adapter.py
+│   │       ├── email_notifier.py
+│   │       ├── telegram_notifier.py
+│   │       └── sqlite_repository.py
+│   ├── config.py
+│   └── main.py
 ├── tests/
 │   ├── unit/
 │   └── integration/
@@ -81,7 +79,7 @@ surge-agent/
 └── README.md
 ```
 
-Pacote importável: `surge` (não `automation_hub`).
+Pacote importável: `src` (distribuição `surge`). Estrutura flatten: `src/domain` etc., sem `src/surge/` redundante.
 
 ## 4. Convenções de Código
 
@@ -113,11 +111,11 @@ Lint + testes unitários obrigatórios + build Docker.
 
 ## 9. Critérios de Aceite — Fase 1 (Bootstrap)
 
-- [ ] Estrutura com `src/surge/`
+- [ ] Estrutura com `src/`
 - [ ] `domain/ports.py` e `domain/models.py`
 - [ ] `investment_scanner/use_case.py` com DI
 - [ ] Adapters outbound funcionais
 - [ ] `main.py` composition root
 - [ ] `pyproject.toml`, `Dockerfile`, `docker-compose.yml`, `ci.yml`
-- [ ] `agents/skills/new-automation.md` antes dos adapters
+- [ ] `agents/skill/new-automation.md` antes dos adapters
 - [ ] README com setup venv

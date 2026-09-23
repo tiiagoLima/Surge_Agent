@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 
-from surge.domain.models import Opportunity, Quote
+from src.domain.models import Opportunity, Quote
 
 
 class QuotePort(ABC):
