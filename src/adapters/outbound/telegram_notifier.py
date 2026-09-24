@@ -39,7 +39,7 @@ class TelegramNotifier(NotificationPort):
             return
         lines = ["*Surge* detectou quedas relevantes:\n"]
         for opp in opportunities:
-            # Escape markdown minimally — keep summary plain
+            # Escape Markdown minimally — keep summary plain
             lines.append(f"• {opp.summary()}")
         text = "\n".join(lines)
         try:

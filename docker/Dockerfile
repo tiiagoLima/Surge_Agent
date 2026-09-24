@@ -26,9 +26,9 @@ COPY docker/entrypoint.sh ./docker/entrypoint.sh
 ENV PYTHONPATH=/app
 ENV SURGE_DB_PATH=/app/data/surge.db
 
-USER surge
-
 RUN chmod +x ./docker/entrypoint.sh
+
+USER surge
 
 ENTRYPOINT ["./docker/entrypoint.sh"]
 CMD ["surge"]

@@ -22,7 +22,7 @@ class SqliteRepository(PortfolioPort, StoragePort):
     """
 
     def __init__(self, db_path: str | Path = "./surge.db") -> None:
-        # :memory: needs shared-cache URI per instance to keep tables across connections
+        # Normalize to absolute path for persistence; :memory: keeps in RAM only
         if isinstance(db_path, str) and db_path == ":memory:":
             self._db_path: str | Path = f"file:mem_{uuid.uuid4().hex}?mode=memory&cache=shared"
             self._is_memory = True
@@ -30,10 +30,15 @@ class SqliteRepository(PortfolioPort, StoragePort):
             self._memory_conn = sqlite3.connect(self._db_path, uri=True, timeout=10)
             self._memory_conn.row_factory = sqlite3.Row
         else:
-            self._db_path = Path(db_path) if isinstance(db_path, str) else db_path
+            self._db_path = Path(db_path).expanduser().resolve()
             self._is_memory = False
             self._memory_conn = None
-            if str(self._db_path) != ":memory:":
+            # Ensure parent directory exists (required for Docker volumes & local runs)
+            try:
+                self._db_path.parent.mkdir(parents=True, exist_ok=True)
+            except PermissionError:
+                # In Docker the volume may be owned by root; fallback to /tmp
+                self._db_path = Path("/tmp") / self._db_path.name
                 self._db_path.parent.mkdir(parents=True, exist_ok=True)
         self._init_db()
 
