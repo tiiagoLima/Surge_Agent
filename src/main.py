@@ -10,6 +10,7 @@ import argparse
 import logging
 import sys
 
+from src.adapters.inbound.imap_inbox_adapter import ImapInboxAdapter
 from src.adapters.inbound.scheduler_trigger import SchedulerTrigger
 from src.adapters.outbound.brapi_adapter import BrapiAdapter
 from src.adapters.outbound.composite_notifier import CompositeNotifier
@@ -19,6 +20,9 @@ from src.adapters.outbound.sqlite_repository import SqliteRepository
 from src.adapters.outbound.telegram_notifier import TelegramNotifier
 from src.adapters.outbound.yfinance_adapter import YFinanceAdapter
 from src.application.portfolio.manage_portfolio_use_case import ManagePortfolioUseCase
+from src.application.portfolio.process_investment_emails_use_case import (
+    ProcessInvestmentEmailsUseCase,
+)
 from src.application.portfolio.scan_portfolio_use_case import ScanPortfolioUseCase
 from src.application.radar.market_radar_use_case import MarketRadarUseCase
 from src.config import get_settings
@@ -91,12 +95,38 @@ def build_market_radar_use_case() -> MarketRadarUseCase:
 
 
 def run_scheduler() -> None:
-    """Run with APScheduler (blocking) — scans portfolio + radar daily."""
+    """Run with APScheduler (blocking) — imports emails and scans daily."""
     settings = get_settings()
     scan_portfolio = build_scan_portfolio_use_case()
     radar = build_market_radar_use_case()
+    email_processor = None
+    if settings.imap_enabled:
+        _, portfolio_port, quote_port, _, _ = _build_ports()
+        inbox = ImapInboxAdapter(
+            host=settings.imap_host,
+            port=settings.imap_port,
+            username=settings.imap_user,
+            password=settings.imap_password,
+            mailbox=settings.imap_mailbox,
+        )
+        email_processor = ProcessInvestmentEmailsUseCase(
+            inbox_port=inbox,
+            portfolio_port=portfolio_port,
+            quote_port=quote_port,
+            subject_prefix=settings.investment_email_subject,
+        )
+
+    def process_emails() -> None:
+        if email_processor is None:
+            return
+        try:
+            count = email_processor.execute()
+            logger.info("Processed %d investment emails", count)
+        except Exception:
+            logger.exception("Investment email processing failed")
 
     def job() -> None:
+        process_emails()
         logger.info("Surge scheduled scan triggered")
         try:
             opps_p = scan_portfolio.execute()
@@ -114,6 +144,8 @@ def run_scheduler() -> None:
 
     trigger = SchedulerTrigger(timezone=settings.timezone)
     trigger.schedule_daily(job, hour=settings.cron_hour, minute=settings.cron_minute)
+    if email_processor is not None:
+        trigger.schedule_interval(process_emails, minutes=settings.email_poll_minutes)
     trigger.start()
 
 

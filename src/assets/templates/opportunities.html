@@ -22,7 +22,7 @@
                       Alerta de Mercado
                     </span>
                     <h1 style="margin: 0; font-size: 26px; font-weight: 800; color: #ffffff; letter-spacing: -0.5px;">
-                      SURGE <span style="color: #60a5fa; font-weight: 400; font-size: 20px;">/ Scanner</span>
+                      SURGE <span style="color: #60a5fa; font-weight: 400; font-size: 20px;"> scanner </span>
                     </h1>
                     <p style="margin: 8px 0 0 0; font-size: 14px; color: #94a3b8;">
                       {{ count }} oportunidade(s) com queda &ge; {{ threshold | round(1) }}% detectada(s).
@@ -74,6 +74,7 @@
                     <th align="left" style="padding: 12px 14px; font-size: 11px; font-weight: 600; text-transform: uppercase; color: #64748b; border-bottom: 1px solid #1f2937;">Ativo</th>
                     <th align="right" style="padding: 12px 14px; font-size: 11px; font-weight: 600; text-transform: uppercase; color: #64748b; border-bottom: 1px solid #1f2937;">Preço Atual</th>
                     <th align="right" style="padding: 12px 14px; font-size: 11px; font-weight: 600; text-transform: uppercase; color: #64748b; border-bottom: 1px solid #1f2937;">Anterior</th>
+                    <th align="right" style="padding: 12px 14px; font-size: 11px; font-weight: 600; text-transform: uppercase; color: #64748b; border-bottom: 1px solid #1f2937;">P&L</th>
                     <th align="center" style="padding: 12px 14px; font-size: 11px; font-weight: 600; text-transform: uppercase; color: #64748b; border-bottom: 1px solid #1f2937;">Queda</th>
                     <th align="right" style="padding: 12px 14px; font-size: 11px; font-weight: 600; text-transform: uppercase; color: #64748b; border-bottom: 1px solid #1f2937;">Fonte</th>
                   </tr>
@@ -90,6 +91,13 @@
                     <td align="right" style="padding: 14px; font-size: 12px; color: #94a3b8; font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace; border-bottom: 1px solid #1e293b;">
                       {% if opp.quote.previous_close %}
                         {{ "%.2f" | format(opp.quote.previous_close) }}
+                      {% else %}
+                        -
+                      {% endif %}
+                    </td>
+                    <td align="right" style="padding: 14px; font-size: 12px; color: {{ '#34d399' if opp.pnl_amount is not none and opp.pnl_amount >= 0 else '#ef4444' }}; font-family: monospace; border-bottom: 1px solid #1e293b;">
+                      {% if opp.pnl_amount is not none and opp.pnl_pct is not none %}
+                        {{ "%+.2f" | format(opp.pnl_amount) }} ({{ "%+.2f" | format(opp.pnl_pct) }}%)
                       {% else %}
                         -
                       {% endif %}
@@ -124,7 +132,7 @@
           <tr>
             <td style="padding: 24px 36px; background-color: #0d121f; border-top: 1px solid #1f2937; text-align: center;">
               <p style="margin: 0; font-size: 12px; color: #64748b;">
-                Surge — Personal Automation Hub &bull; Notificação Automática
+                Surge — Personal Agent &bull; Notificação Automática
               </p>
               <p style="margin: 6px 0 0 0; font-size: 11px; color: #475569;">
                 Gerado em {{ generated_at }}

@@ -38,6 +38,17 @@ class SchedulerTrigger:
             self._timezone,
         )
 
+    def schedule_interval(self, func: Callable[[], None], minutes: int = 5) -> None:
+        """Schedule func repeatedly at a fixed interval."""
+        self._scheduler.add_job(
+            func,
+            "interval",
+            minutes=minutes,
+            id="surge_email_poll",
+            replace_existing=True,
+        )
+        logger.info("Scheduled job 'surge_email_poll' every %d minutes", minutes)
+
     def start(self) -> None:
         """Blocking start — runs until interrupted."""
         logger.info("Surge scheduler starting (timezone=%s)", self._timezone)

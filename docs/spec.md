@@ -111,7 +111,11 @@ Pacote importável: `src` (distribuição `surge`). Estrutura flatten: `src/doma
 - `ManagePortfolioUseCase.add/remove/list/get` — agnóstico (CLI é só inbound adapter;
   futuro `TelegramInboundAdapter` reusa o mesmo use case). `add` valida o ticker
   via `QuotePort.get_quote()` (Brapi free) antes de persistir.
-- `ScanPortfolioUseCase` — monitora holdings locais, alerta se queda >= threshold.
+- `ScanPortfolioUseCase` — monitora holdings locais, alerta se queda >= threshold e associa os dados da posição ao alerta.
+- Alertas de carteira podem exibir custo, valor atual e P&L não realizado quando `avg_price` estiver cadastrado.
+- O sistema é somente informativo nesta fase: não executa compras, vendas ou rebalanceamentos.
+- Com IMAP habilitado, mensagens não lidas com assunto `SURGE: INVESTIMENTO` são parseadas e registram compras na carteira; outros assuntos ficam disponíveis para futuras automações.
+- A primeira versão usa senha de app do Gmail; OAuth2 fica planejado para o deploy na VPS.
 - `MarketRadarUseCase` — consome `QuotePort.list_market_quotes()` (Brapi
   `GET /api/quote/list`, free) e retorna quedas >= threshold excluindo a carteira.
 - Threshold: queda de 5% vs fechamento anterior (configurável via `SURGE_DROP_THRESHOLD`).

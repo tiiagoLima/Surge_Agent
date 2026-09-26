@@ -70,30 +70,70 @@ class Holding:
 
 @dataclass(frozen=True)
 class Opportunity:
-    """Detected buying opportunity.
+    """Detected market or portfolio opportunity.
 
     Attributes:
         quote: The quote that triggered the opportunity.
         drop_pct: Actual drop percentage (negative).
         threshold_pct: Threshold that was breached.
         detected_at: When detection happened (UTC).
+        holding: Owned position related to the opportunity, when applicable.
     """
 
     quote: Quote
     drop_pct: float
     threshold_pct: float
     detected_at: datetime
+    holding: Holding | None = None
 
     @property
     def ticker(self) -> str:
+        """Return the ticker."""
         return self.quote.ticker
+
+    @property
+    def invested_amount(self) -> float | None:
+        """Return the position cost basis when average price is available."""
+        if self.holding is None or self.holding.avg_price is None:
+            return None
+        return self.holding.quantity * self.holding.avg_price
+
+    @property
+    def current_amount(self) -> float | None:
+        """Return the current position value."""
+        if self.holding is None:
+            return None
+        return self.holding.quantity * self.quote.price
+
+    @property
+    def pnl_amount(self) -> float | None:
+        """Return unrealized profit or loss for the position."""
+        invested = self.invested_amount
+        current = self.current_amount
+        if invested is None or current is None:
+            return None
+        return current - invested
+
+    @property
+    def pnl_pct(self) -> float | None:
+        """Return unrealized profit or loss percentage."""
+        invested = self.invested_amount
+        pnl = self.pnl_amount
+        if invested in (None, 0) or pnl is None:
+            return None
+        return pnl / invested * 100
 
     def summary(self) -> str:
         """Human-readable one-liner for notifications."""
-        return (
+        summary = (
             f"{self.quote.ticker} caiu {abs(self.drop_pct):.2f}% "
             f"(threshold {self.threshold_pct:.1f}%) — "
             f"{self.quote.price:.2f} {self.quote.currency} "
             f"em {self.detected_at.strftime('%Y-%m-%d %H:%M UTC')} "
             f"[{self.quote.source}]"
         )
+        if self.holding is not None:
+            summary += f" — posição: {self.holding.quantity:g} unidades"
+            if self.pnl_amount is not None and self.pnl_pct is not None:
+                summary += f", P&L {self.pnl_amount:+.2f} ({self.pnl_pct:+.2f}%)"
+        return summary

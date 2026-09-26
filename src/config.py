@@ -31,6 +31,16 @@ class Settings(BaseSettings):
     smtp_password: str = Field(default="", alias="SURGE_SMTP_PASSWORD")
     email_from: str = Field(default="", alias="SURGE_EMAIL_FROM")
     email_to: str = Field(default="", alias="SURGE_EMAIL_TO")
+    imap_enabled: bool = Field(default=False, alias="SURGE_IMAP_ENABLED")
+    imap_host: str = Field(default="imap.gmail.com", alias="SURGE_IMAP_HOST")
+    imap_port: int = Field(default=993, alias="SURGE_IMAP_PORT")
+    imap_user: str = Field(default="", alias="SURGE_IMAP_USER")
+    imap_password: str = Field(default="", alias="SURGE_IMAP_PASSWORD")
+    imap_mailbox: str = Field(default="INBOX", alias="SURGE_IMAP_MAILBOX")
+    investment_email_subject: str = Field(
+        default="SURGE: INVESTIMENTO", alias="SURGE_INVESTMENT_EMAIL_SUBJECT"
+    )
+    email_poll_minutes: int = Field(default=5, alias="SURGE_EMAIL_POLL_MINUTES")
 
     # Telegram
     telegram_enabled: bool = Field(default=False, alias="SURGE_TELEGRAM_ENABLED")

@@ -128,3 +128,19 @@ black --check .
 - [ ] Contas a pagar
 - [ ] Faculdade (alertas de tarefas/provas)
 - [ ] Agentes de IA (Surge personificado)
+
+### Alertas da carteira
+
+Os alertas gerados pelo scanner da carteira incluem, quando o preço médio foi informado, quantidade, custo da posição, valor atual e P&L não realizado. O Surge apenas notifica: nenhuma ordem de compra ou venda é executada automaticamente.
+
+### Registrar compras por e-mail
+
+Configure uma senha de app do Gmail no `.env` e habilite o IMAP. O scheduler lê mensagens não lidas com assunto iniciado por `SURGE: INVESTIMENTO`:
+
+```text
+Assunto: SURGE: INVESTIMENTO
+
+Hoje comprei 10 cotas de PETR4 por R$ 30,00
+```
+
+O ativo é validado via Brapi. Compras posteriores consolidam quantidade e preço médio; mensagens válidas são marcadas como lidas. Mensagens de outros assuntos permanecem disponíveis para futuras automações.
