@@ -55,6 +55,8 @@ class ScanPortfolioUseCase:
         opportunities: list[Opportunity] = []
         now = datetime.now(UTC)
 
+        holdings_by_ticker = {holding.ticker.upper(): holding for holding in holdings}
+
         for ticker in tickers:
             quote = self._quotes.get_quote(ticker)
             if quote is None:
@@ -68,8 +70,13 @@ class ScanPortfolioUseCase:
             if quote.is_significant_drop(self._threshold):
                 drop = quote.drop_pct()
                 assert drop is not None
+                holding = holdings_by_ticker.get(ticker.upper())
                 opp = Opportunity(
-                    quote=quote, drop_pct=drop, threshold_pct=self._threshold, detected_at=now
+                    quote=quote,
+                    drop_pct=drop,
+                    threshold_pct=self._threshold,
+                    detected_at=now,
+                    holding=holding,
                 )
                 opportunities.append(opp)
                 try:

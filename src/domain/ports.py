@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 
+from src.domain.email_models import IncomingEmail
 from src.domain.models import Holding, Opportunity, Quote
 
 
@@ -58,6 +59,18 @@ class StoragePort(ABC):
     def get_recent_opportunities(self, limit: int = 20) -> list[Opportunity]:
         """Optional: return recent opportunities."""
         return []
+
+
+class InboxPort(ABC):
+    """Reads and acknowledges messages for inbound automations."""
+
+    @abstractmethod
+    def fetch_unprocessed(self, subject_prefix: str) -> list[IncomingEmail]:
+        """Return messages matching the automation subject prefix."""
+
+    @abstractmethod
+    def mark_processed(self, uid: str) -> None:
+        """Mark a message as processed."""
 
 
 class PortfolioPort(ABC):
